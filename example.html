@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #root {
+            display: grid;
+            height: 800px;
+            width: 800px;
+            border: solid;
+            grid-template-columns: auto;
+            grid-template-rows: auto;
+            grid-auto-flow: column;
+        }
+
+        .containerColumn {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+        }
+
+        .containerRow {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="root" class="containerColumn"></div>
+</body>
+<script src="jqery3.3.1.min.js"></script>
+<script src="dragadrop.js"></script>
+</html>
