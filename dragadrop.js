@@ -7,8 +7,22 @@ $(document).ready(() => {
            this.cursor = 'auto';
            this.move = {};
            this.target = {};
+           this.init();
        }
-       
+
+       init() {
+           const root = $('#root');
+           root.mouseup(() => {
+               root.css('cursor', 'auto');
+               this.cursor = 'auto';
+               const moved = $(`#${this.move.id}`);
+               const target = $(`#${this.target.id}`);
+
+               moved.css('background-color', this.target.color);
+               target.css('background-color', this.move.color);
+           });
+       }
+
        getRoot() {
            return this.root;
        }
@@ -61,15 +75,8 @@ $(document).ready(() => {
                    container.css('box-shadow', '-5px 0px 30px rgba(0,0,0,0.5)');
                }
            }).on('mouseout', () => container.css('box-shadow', ''));
-           root.mouseup(() => {
-               root.css('cursor', 'auto');
-               this.cursor = 'auto';
-               const moved = $(`#${this.move.id}`);
-               const target = $(`#${this.target.id}`);
 
-               moved.css('background-color', this.target.color);
-               target.css('background-color', this.move.color);
-           });
+
        }
 
        updateGrid() {
