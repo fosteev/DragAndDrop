@@ -1,120 +1,176 @@
 $(document).ready(() => {
-   class Dragadrop {
-       constructor(id) {
-           this.id = id;
-           this.root = $(`#${id}`);
-           this.items = [];
-           this.cursor = 'auto';
-           this.move = {};
-           this.target = {};
-           this.init();
-       }
+    class Dragadrop {
+        constructor(id, options, drag, drop) {
+            this.id = id;
+            this.root = $(`#${id}`);
+            this.items = [];
+            this.cursor = 'auto';
 
-       init() {
-           const root = $('#root');
-           root.mouseup(() => {
-               root.css('cursor', 'auto');
-               this.cursor = 'auto';
-               const moved = $(`#${this.move.id}`);
-               const target = $(`#${this.target.id}`);
+            this.options = options;
 
-               moved.css('background-color', this.target.color);
-               target.css('background-color', this.move.color);
-           });
-       }
+            this.move = {};
+            this.target = {};
 
-       getRoot() {
-           return this.root;
-       }
+            this.randomBgColor = true;
+            this.hoverShadow = true;
+            this.hoverCallBack = null;
+            this.flurCallBack = null;
 
-       getEl(el) {
-           return $(`#${el[0].id}`);
-       }
+            this.callBackDragContainerID = drag;
+            this.callBackDropContainerID = drop;
 
-       test(count) {
-           for (let i = 0; i < count; i++) {
-               this.addContainer();
-           }
-       }
+            this.init();
+            this.test(15);
+        }
 
-       clear() {
-           this.items = [];
-           $('#root').html('');
-           this.updateGrid();
-       }
+        init() {
+            document.onmousedown = () => {
+                this.cursorMove();
+                if (this.callBackDragContainerID) {
+                    this.callBackDragContainerID(this.target.id);
+                }
+            };
 
-       addContainer(options) {
-           const id = this.generateRandomId();
-           const container = this.getHtmlContainer(id);
+            document.onmouseup = () => {
+                this.cursorAuto();
+                if (this.callBackDropContainerID) {
+                    this.callBackDropContainerID(this.move.id);
+                }
+            };
+            this.initialOption();
+        }
 
-           this.root.append(container);
-           this.items.push(container);
+        initialOption() {
+            for (const key in this.options) {
+                this[key] = this.options[key];
+            }
+        }
 
-           this.updateGrid();
-           this.bindListener(id);
+        getRoot() {
+            return this.root;
+        }
 
-           $(`#${id}`).css('background-color', this.generateRandomColor());
-       }
+        getEl(el) {
+            return $(`#${el[0].id}`);
+        }
 
-       bindListener(id) {
-           const root = $('#root');
-           const container = $(`#${id}`);
-           container.mousedown(() => {
-               root.css('cursor', 'move');
-               this.cursor = 'move';
-               this.move = {
-                   id: id,
-                   color: container.css('background-color')
-               }
-           }).on('mouseover', () => {
-               if (this.cursor === 'move') {
-                   this.target = {
-                       id: id,
-                       color: container.css('background-color')
-                   };
-                   container.css('box-shadow', '-5px 0px 30px rgba(0,0,0,0.5)');
-               }
-           }).on('mouseout', () => container.css('box-shadow', ''));
+        test(count) {
+            for (let i = 0; i < count; i++) {
+                this.addContainer();
+            }
+        }
 
+        clear() {
+            this.items = [];
+            $('#root').html('');
+            this.updateGrid();
+        }
 
-       }
+        addContainer(options) {
+            const id = this.generateRandomId();
+            const container = this.getHtmlContainer(id);
 
-       updateGrid() {
-           const cssRows = {
-               3: 'auto auto',
-               5: 'auto auto auto',
-               13: 'auto auto auto auto',
-               21: 'auto auto auto auto auto',
-               31: 'auto auto auto auto auto auto',
-               41: 'auto auto auto auto auto auto auto',
-               51: 'auto auto auto auto auto auto auto auto',
-               61: 'auto auto auto auto auto auto auto auto auto'
-           };
+            this.root.append(container);
+            this.items.push(container);
 
-           const css = cssRows[this.items.length];
+            this.updateGrid();
+            this.bindListener(id);
 
-           if (css) {
-               this.root.css('grid-template-rows', css);
-           }
-       }
+            if (this.randomBgColor) {
+                $(`#${id}`).css('background-color', this.generateRandomColor());
+            }
+        }
 
-       getHtmlContainer(id, orientation) {
-           return `<div id="${id}"></div>`;
-       }
+        bindListener(id) {
+            const container = document.getElementById(id);
+            const jqContainer = $(`#${id}`);
 
-       generateRandomColor() {
-           var letters = '0123456789ABCDEF';
-           var color = '#';
-           for (var i = 0; i < 6; i++) {
-               color += letters[Math.floor(Math.random() * 16)];
-           }
-           return color;
-       }
+            container.onmousedown = () => {
+                this.move = {
+                    id: id,
+                };
+            };
 
-       generateRandomId() {
-           return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-       }
-   };
+            container.onmousemove = (e) => {
+                if (this.cursor === 'move') {
+                    this.target = {
+                        id: id
+                    };
 
-   window.drag = new Dragadrop('root');
+                    if (this.hoverShadow) {
+                        jqContainer.css('box-shadow', '-5px 0px 30px rgba(0,0,0,0.5)');
+                    }
+
+                    if (this.hoverCallBack) {
+                        this.hoverCallBack(id, container, jqContainer);
+                    }
+
+                }
+            };
+
+            container.onmouseleave = (e) => {
+                if (this.hoverShadow) {
+                    jqContainer.css('box-shadow', '');
+                }
+
+                if (this.flurCallBack) {
+                    this.hoverCallBack(id, container, jqContainer);
+                }
+            };
+        }
+
+        cursorMove() {
+            this.cursor = 'move';
+            this.getRoot().css('cursor', 'move');
+        }
+
+        cursorAuto() {
+            this.cursor = 'auto';
+            this.getRoot().css('cursor', 'auto');
+        }
+
+        updateGrid() {
+            const cssRows = {
+                3: 'auto auto',
+                5: 'auto auto auto',
+                13: 'auto auto auto auto',
+                21: 'auto auto auto auto auto',
+                31: 'auto auto auto auto auto auto',
+                41: 'auto auto auto auto auto auto auto',
+                51: 'auto auto auto auto auto auto auto auto',
+                61: 'auto auto auto auto auto auto auto auto auto'
+            };
+
+            const css = cssRows[this.items.length];
+
+            if (css) {
+                this.root.css('grid-template-rows', css);
+            }
+        }
+
+        getHtmlContainer(id) {
+            return `<div id="${id}" class="container"></div>`;
+        }
+
+        generateRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        generateRandomId() {
+            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        }
+    };
+
+    window.drag = new Dragadrop('root', {
+        randomBgColor: false
+    }, id => {
+        console.log(`drag ${id}`);
+    }, id => {
+        console.log(`drop ${id}`);
+    });
 });
