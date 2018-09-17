@@ -114,7 +114,7 @@ $(document).ready(() => {
                 }
 
                 if (this.flurCallBack) {
-                    this.hoverCallBack(id, container, jqContainer);
+                    this.flurCallBack(id, container, jqContainer);
                 }
             };
         }
